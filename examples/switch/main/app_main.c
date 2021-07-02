@@ -28,6 +28,9 @@
 
 #include "app_priv.h"
 
+#define CONFIG_WS2812_LED_GPIO 18
+#define CONFIG_WS2812_LED_ENABLE 1
+
 static const char *TAG = "app_main";
 esp_rmaker_device_t *switch_device;
 

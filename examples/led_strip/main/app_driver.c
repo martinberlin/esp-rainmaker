@@ -18,6 +18,7 @@
 #include <ws2812_led.h>
 #include "app_priv.h"
 
+#define LED_STRIP_LEN 13
 /* This is the button that is used for toggling the power */
 #define BUTTON_GPIO          CONFIG_EXAMPLE_BOARD_BUTTON_GPIO
 #define BUTTON_ACTIVE_LEVEL  0
@@ -30,6 +31,22 @@ static uint16_t g_saturation = DEFAULT_SATURATION;
 static uint16_t g_value = DEFAULT_BRIGHTNESS;
 static bool g_power = DEFAULT_POWER;
 
+led_strip_t *my_strip;
+
+esp_err_t strip_set_pixels(uint32_t hue, uint32_t saturation, uint32_t value) {
+    uint32_t red = 0;
+    uint32_t green = 0;
+    uint32_t blue = 0;
+    ws2812_led_hsv2rgb(hue, saturation, value, &red, &green, &blue);
+    
+    for (uint16_t index=0; index<LED_STRIP_LEN; ++index) {
+        ws2812_set_pixel(my_strip, index, red, green, blue);
+        //printf("%d ", index);
+    }
+    
+    return ws2812_refresh(my_strip, LED_STRIP_LEN);
+}
+
 esp_err_t app_light_set_led(uint32_t hue, uint32_t saturation, uint32_t brightness)
 {
     /* Whenever this function is called, light power will be ON */
@@ -39,16 +56,16 @@ esp_err_t app_light_set_led(uint32_t hue, uint32_t saturation, uint32_t brightne
                 esp_rmaker_device_get_param_by_type(light_device, ESP_RMAKER_PARAM_POWER),
                 esp_rmaker_bool(g_power));
     }
-    return ws2812_led_set_hsv(hue, saturation, brightness);
+    return strip_set_pixels(hue, saturation, brightness);
 }
 
 esp_err_t app_light_set_power(bool power)
 {
     g_power = power;
     if (power) {
-        ws2812_led_set_hsv(g_hue, g_saturation, g_value);
+        strip_set_pixels(g_hue, g_saturation, g_value);
     } else {
-        ws2812_led_clear();
+        ws2812_clear(my_strip, 100);
     }
     return ESP_OK;
 }
@@ -71,12 +88,11 @@ esp_err_t app_light_set_saturation(uint16_t saturation)
 
 esp_err_t app_light_init(void)
 {
-    esp_err_t err = ws2812_led_init(1);
-    if (err != ESP_OK) {
-        return err;
-    }
+    my_strip = ws2812_led_init(LED_STRIP_LEN);
+    
     if (g_power) {
         ws2812_led_set_hsv(g_hue, g_saturation, g_value);
+        // strip_set_pixels
     } else {
         ws2812_led_clear();
     }

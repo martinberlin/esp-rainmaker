@@ -93,10 +93,11 @@ static void IRAM_ATTR ws2812_rmt_adapter(const void *src, rmt_item32_t *dest, si
     *item_num = num;
 }
 
-static esp_err_t ws2812_set_pixel(led_strip_t *strip, uint32_t index, uint32_t red, uint32_t green, uint32_t blue)
+esp_err_t ws2812_set_pixel(led_strip_t *strip, uint32_t index, uint32_t red, uint32_t green, uint32_t blue)
 {
     esp_err_t ret = ESP_OK;
     ws2812_t *ws2812 = __containerof(strip, ws2812_t, parent);
+    //printf("i:%d ", index);
     STRIP_CHECK(index < ws2812->strip_len, "index out of the maximum number of leds", err, ESP_ERR_INVALID_ARG);
     uint32_t start = index * 3;
     // In thr order of GRB
@@ -108,7 +109,7 @@ err:
     return ret;
 }
 
-static esp_err_t ws2812_refresh(led_strip_t *strip, uint32_t timeout_ms)
+esp_err_t ws2812_refresh(led_strip_t *strip, uint32_t timeout_ms)
 {
     esp_err_t ret = ESP_OK;
     ws2812_t *ws2812 = __containerof(strip, ws2812_t, parent);
@@ -119,7 +120,7 @@ err:
     return ret;
 }
 
-static esp_err_t ws2812_clear(led_strip_t *strip, uint32_t timeout_ms)
+esp_err_t ws2812_clear(led_strip_t *strip, uint32_t timeout_ms)
 {
     ws2812_t *ws2812 = __containerof(strip, ws2812_t, parent);
     // Write zero to turn off all leds

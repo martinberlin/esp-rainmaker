@@ -28,6 +28,7 @@ esp_rmaker_device_t *light_device;
 
 //Set GPIO 13 as PWM0A, to which servo is connected
 #define SERVO_PWM 13
+#define DEVICE_PARAM_ANGLE "Motor-angle"
 //You can get these value from the datasheet of servo you use, in general pulse width varies between 1000 to 2000 mocrosecond
 #define SERVO_MIN_PULSEWIDTH 1000 //Minimum pulse width in microsecond
 #define SERVO_MAX_PULSEWIDTH 2000 //Maximum pulse width in microsecond
@@ -89,26 +90,12 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
         ESP_LOGI(TAG, "Received value = %s for %s - %s",
                 val.val.b? "true" : "false", device_name, param_name);
         //app_light_set_power(val.val.b);
-    } else if (strcmp(param_name, ESP_RMAKER_DEF_BRIGHTNESS_NAME) == 0) {
-        ESP_LOGI(TAG, "Received value = %d for %s - %s",
-                val.val.i, device_name, param_name);
-
+    } else if (strcmp(param_name, DEVICE_PARAM_ANGLE) == 0) {
         uint32_t angle = servo_per_degree_init(val.val.i);
-            printf("pulse width: %dus\n", angle);
-            mcpwm_set_duty_in_us(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_OPR_A, angle);
+        ESP_LOGI(TAG, "Received value = %d for %s-%s:%d",
+                val.val.i, device_name, param_name, angle);
 
-    } else if (strcmp(param_name, ESP_RMAKER_DEF_HUE_NAME) == 0) {
-        ESP_LOGI(TAG, "Received value = %d for %s - %s",
-                val.val.i, device_name, param_name);
-        uint16_t signal = val.val.i/2;
-        uint32_t angle = servo_per_degree_init(signal);
-            printf("pulse width:%dus Sig:%d\n", angle, signal);
-            mcpwm_set_duty_in_us(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_OPR_A, angle);
-
-    } else if (strcmp(param_name, ESP_RMAKER_DEF_SATURATION_NAME) == 0) {
-        ESP_LOGI(TAG, "Received value = %d for %s - %s",
-                val.val.i, device_name, param_name);
-        //app_light_set_saturation(val.val.i);
+        mcpwm_set_duty_in_us(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_OPR_A, angle);
     } else {
         /* Silently ignoring invalid params */
         return ESP_OK;
@@ -140,7 +127,7 @@ void app_main()
     esp_rmaker_config_t rainmaker_cfg = {
         .enable_time_sync = false,
     };
-    esp_rmaker_node_t *node = esp_rmaker_node_init(&rainmaker_cfg, "ESP RainMaker Device", "Lightbulb");
+    esp_rmaker_node_t *node = esp_rmaker_node_init(&rainmaker_cfg, "ESP RainMaker Device", "Fan");
     if (!node) {
         ESP_LOGE(TAG, "Could not initialise node. Aborting!!!");
         vTaskDelay(5000/portTICK_PERIOD_MS);
@@ -148,13 +135,13 @@ void app_main()
     }
 
     /* Create a device and add the relevant parameters to it */
-    light_device = esp_rmaker_lightbulb_device_create("Light", NULL, true);
+    light_device = esp_rmaker_lightbulb_device_create("Servo-motor", NULL, true);
     esp_rmaker_device_add_cb(light_device, write_cb, NULL);
-
-    esp_rmaker_device_add_param(light_device, esp_rmaker_brightness_param_create(ESP_RMAKER_DEF_BRIGHTNESS_NAME, 100));
-    esp_rmaker_device_add_param(light_device, esp_rmaker_hue_param_create(ESP_RMAKER_DEF_HUE_NAME, 0));
-    esp_rmaker_device_add_param(light_device, esp_rmaker_saturation_param_create(ESP_RMAKER_DEF_SATURATION_NAME, 100));
-
+    // Customize angle slider
+    esp_rmaker_param_t *angle = esp_rmaker_brightness_param_create(DEVICE_PARAM_ANGLE, 0);
+    // My SG90 servo only moves 147 instead of 180 degrees
+    esp_rmaker_param_add_bounds(angle, esp_rmaker_int(0), esp_rmaker_int(147), esp_rmaker_int(1));
+    esp_rmaker_device_add_param(light_device, angle);
     esp_rmaker_node_add_device(node, light_device);
 
     /* Enable OTA */
@@ -180,7 +167,7 @@ void app_main()
     mcpwm_example_gpio_initialize();
 
     //2. initial mcpwm configuration
-    printf("Configuring Initial Parameters of mcpwm......\n");
+    printf("Configuring Initial Parameters of mcpwm servo settings\n");
     mcpwm_config_t pwm_config;
     pwm_config.frequency = 50;    //frequency = 50Hz, i.e. for every servo motor time period should be 20ms
     pwm_config.cmpr_a = 0;    //duty cycle of PWMxA = 0

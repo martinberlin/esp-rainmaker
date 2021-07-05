@@ -79,7 +79,7 @@ static void app_indicator_set(bool state)
 
 static void app_indicator_init(void)
 {
-    ws2812_led_init();
+    ws2812_led_init(1);
     app_indicator_set(g_power_state);
 }
 

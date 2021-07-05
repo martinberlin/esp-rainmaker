@@ -54,6 +54,7 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
 static void event_handler(void* arg, esp_event_base_t event_base,
                           int32_t event_id, void* event_data)
 {
+    printf("EVENT ID:%d\n", event_id);
     if (event_base == RMAKER_EVENT) {
         switch (event_id) {
             case RMAKER_EVENT_INIT_DONE:

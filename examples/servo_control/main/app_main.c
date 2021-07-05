@@ -15,6 +15,7 @@
 
 #include <esp_rmaker_core.h>
 #include <esp_rmaker_standard_params.h>
+#include <esp_rmaker_standard_types.h>
 #include <esp_rmaker_standard_devices.h>
 #include <esp_rmaker_ota.h>
 #include <esp_rmaker_schedule.h>
@@ -24,7 +25,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-esp_rmaker_device_t *light_device;
+esp_rmaker_device_t *servo_device;
 
 //Set GPIO 13 as PWM0A, to which servo is connected
 #define SERVO_PWM 13
@@ -135,14 +136,14 @@ void app_main()
     }
 
     /* Create a device and add the relevant parameters to it */
-    light_device = esp_rmaker_lightbulb_device_create("Servo-motor", NULL, true);
-    esp_rmaker_device_add_cb(light_device, write_cb, NULL);
+    servo_device = esp_rmaker_device_create("Servo-motor", ESP_RMAKER_DEVICE_FAN, NULL);
+    esp_rmaker_device_add_cb(servo_device, write_cb, NULL);
     // Customize angle slider
     esp_rmaker_param_t *angle = esp_rmaker_brightness_param_create(DEVICE_PARAM_ANGLE, 0);
     // My SG90 servo only moves 147 instead of 180 degrees
     esp_rmaker_param_add_bounds(angle, esp_rmaker_int(0), esp_rmaker_int(147), esp_rmaker_int(1));
-    esp_rmaker_device_add_param(light_device, angle);
-    esp_rmaker_node_add_device(node, light_device);
+    esp_rmaker_device_add_param(servo_device, angle);
+    esp_rmaker_node_add_device(node, servo_device);
 
     /* Enable OTA */
     esp_rmaker_ota_config_t ota_config = {

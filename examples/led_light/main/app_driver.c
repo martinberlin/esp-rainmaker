@@ -71,10 +71,9 @@ esp_err_t app_light_set_saturation(uint16_t saturation)
 
 esp_err_t app_light_init(void)
 {
-    esp_err_t err = ws2812_led_init(1);
-    if (err != ESP_OK) {
-        return err;
-    }
+    // Modified ws2812_led_init so it returns a led_strip_t (In case wants to be used to control a Strip)
+    ws2812_led_init(1);
+
     if (g_power) {
         ws2812_led_set_hsv(g_hue, g_saturation, g_value);
     } else {

@@ -10,3 +10,6 @@
 [submodule "cli"]
 	path = cli
 	url = https://github.com/espressif/esp-rainmaker-cli.git
+[submodule "components/esp-insights"]
+	path = components/esp-insights
+	url = https://github.com/espressif/esp-insights.git

@@ -121,6 +121,9 @@ typedef struct {
 */
 led_strip_t *led_strip_new_rmt_ws2812(const led_strip_config_t *config);
 
+esp_err_t ws2812_set_pixel(led_strip_t *strip, uint32_t index, uint32_t red, uint32_t green, uint32_t blue);
+esp_err_t ws2812_refresh(led_strip_t *strip, uint32_t timeout_ms);
+esp_err_t ws2812_clear(led_strip_t *strip, uint32_t timeout_ms);
 #ifdef __cplusplus
 }
 #endif

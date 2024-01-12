@@ -7,13 +7,14 @@
 */
 #pragma once
 #include <esp_err.h>
+#include "led_strip.h"
 
 /** Initialize the WS2812 RGB LED
  *
  * @return ESP_OK on success.
  * @return error in case of failure.
  */
-esp_err_t ws2812_led_init(void);
+led_strip_t* ws2812_led_init(uint16_t strip_len);
 
 /** Set RGB value for the WS2812 LED
  *
@@ -37,6 +38,7 @@ esp_err_t ws2812_led_set_rgb(uint32_t red, uint32_t green, uint32_t blue);
  */
 esp_err_t ws2812_led_set_hsv(uint32_t hue, uint32_t saturation, uint32_t value);
 
+void ws2812_led_hsv2rgb(uint32_t h, uint32_t s, uint32_t v, uint32_t *r, uint32_t *g, uint32_t *b);
 /** Clear (turn off) the WS2812 LED
  * @return ESP_OK on success.
  * @return error in case of failure.

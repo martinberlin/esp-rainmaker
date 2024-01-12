@@ -31,7 +31,7 @@ static led_strip_t *g_strip;
  * Wiki: https://en.wikipedia.org/wiki/HSL_and_HSV
  *
  */
-static void ws2812_led_hsv2rgb(uint32_t h, uint32_t s, uint32_t v, uint32_t *r, uint32_t *g, uint32_t *b)
+void ws2812_led_hsv2rgb(uint32_t h, uint32_t s, uint32_t v, uint32_t *r, uint32_t *g, uint32_t *b)
 {
     h %= 360; // h -> [0,360]
     uint32_t rgb_max = v * 2.55f;
@@ -108,7 +108,7 @@ esp_err_t ws2812_led_clear(void)
     return ESP_OK;
 }
 
-esp_err_t ws2812_led_init(void)
+led_strip_t* ws2812_led_init(uint16_t strip_len)
 {
     rmt_config_t config = RMT_DEFAULT_CONFIG_TX(CONFIG_WS2812_LED_GPIO, RMT_TX_CHANNEL);
     // set counter clock to 40MHz
@@ -116,21 +116,21 @@ esp_err_t ws2812_led_init(void)
 
     if (rmt_config(&config) != ESP_OK) {
         ESP_LOGE(TAG, "RMT Config failed.");
-        return ESP_FAIL;
+        return g_strip;
     }
     if (rmt_driver_install(config.channel, 0, 0) != ESP_OK) {
         ESP_LOGE(TAG, "RMT Driver install failed.");
-        return ESP_FAIL;
+        return g_strip;
     }
 
     // install ws2812 driver
-    led_strip_config_t strip_config = LED_STRIP_DEFAULT_CONFIG(1, (led_strip_dev_t)config.channel);
+    led_strip_config_t strip_config = LED_STRIP_DEFAULT_CONFIG(strip_len, (led_strip_dev_t)config.channel);
     g_strip = led_strip_new_rmt_ws2812(&strip_config);
     if (!g_strip) {
         ESP_LOGE(TAG, "Install WS2812 driver failed.");
-        return ESP_FAIL;
+        return g_strip;
     }
-    return ESP_OK;
+    return g_strip;
 }
 #else /* !CONFIG_WS2812_LED_ENABLE */
 esp_err_t ws2812_led_set_rgb(uint32_t red, uint32_t green, uint32_t blue)
